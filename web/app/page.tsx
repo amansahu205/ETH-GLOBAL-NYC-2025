@@ -3,15 +3,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Shield, Zap, AlertTriangle, Eye, Lock, CheckCircle, Clock, ExternalLink, Wallet, Activity, Star, Sparkles, Bot, Cpu, Router } from 'lucide-react'
 import { useDynamicContext, DynamicWidget } from '@dynamic-labs/sdk-react-core'
-import dynamic from 'next/dynamic'
 
 interface Alert {
   id: number
   wallet: string
   severity: string
   reason: string
-  signals: any[]
-  created_at: string
+  timestamp: number
 }
 
 function SentinelPage() {
@@ -34,6 +32,15 @@ function SentinelPage() {
 
   // Get wallet address from Dynamic
   const walletAddress = primaryWallet?.address || ''
+  
+  // Show loading spinner only initially - temporarily disabled for debugging
+  // if (!mounted) {
+  //   return (
+  //     <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+  //       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+  //     </div>
+  //   )
+  // }
 
   const fetchAlerts = useCallback(async () => {
     if (!walletAddress) return
@@ -561,7 +568,7 @@ function SentinelPage() {
                             {alert.severity.toUpperCase()}
                           </span>
                           <span className="text-sm text-slate-400">
-                            {new Date(alert.created_at).toLocaleString()}
+                            {new Date(alert.timestamp * 1000).toLocaleString()}
                           </span>
                         </div>
                         
@@ -743,7 +750,4 @@ function SentinelPage() {
   )
 }
 
-// Export with dynamic loading to fix hydration
-export default dynamic(() => Promise.resolve(SentinelPage), { 
-  ssr: false 
-})
+export default SentinelPage
