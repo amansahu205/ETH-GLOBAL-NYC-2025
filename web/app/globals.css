@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  
+  body {
+    @apply bg-slate-950 text-slate-100 font-sans antialiased;
+    background-image: 
+      radial-gradient(at 40% 20%, hsla(228, 100%, 74%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, hsla(189, 100%, 56%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, hsla(355, 100%, 93%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, hsla(340, 100%, 76%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(22, 100%, 77%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 80% 100%, hsla(242, 100%, 70%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 0%, hsla(343, 100%, 76%, 0.1) 0px, transparent 50%);
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-lg border border-white/10;
+  }
+  
+  .glow-border {
+    @apply ring-1 ring-blue-500/50 shadow-lg shadow-blue-500/25;
+  }
+  
+  .alert-high {
+    @apply bg-red-500/10 border-red-500/30 text-red-300;
+  }
+  
+  .alert-medium {
+    @apply bg-yellow-500/10 border-yellow-500/30 text-yellow-300;
+  }
+  
+  .alert-low {
+    @apply bg-green-500/10 border-green-500/30 text-green-300;
+  }
+}

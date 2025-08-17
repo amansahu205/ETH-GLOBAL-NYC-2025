@@ -1,0 +1,15 @@
+{
+  "case_id": "29e76a6b-b280-4ad9-a9de-3c596a71d38d",
+  "wallet": "0x742d35Cc6C4C45cb62FF6Fc6e6E6b9B5d8e0e5Dd",
+  "severity": "high",
+  "reason": "Suspicious approval to unknown contract",
+  "signals": [
+    {
+      "type": "approval",
+      "timestamp": 1703234567,
+      "allowance_ratio": 0.8,
+      "spender_known": false
+    }
+  ],
+  "timestamp": "2025-08-17T00:45:55.407829+00:00"
+}
