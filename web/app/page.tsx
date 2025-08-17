@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Shield, Zap, AlertTriangle, Eye, Lock, CheckCircle, Clock, ExternalLink, Wallet, Activity } from 'lucide-react'
+import { Shield, Zap, AlertTriangle, Eye, Lock, CheckCircle, Clock, ExternalLink, Wallet, Activity, Star, Sparkles, Bot, Cpu, Router } from 'lucide-react'
 import { useDynamicContext, DynamicWidget } from '@dynamic-labs/sdk-react-core'
 import dynamic from 'next/dynamic'
 
@@ -152,99 +152,167 @@ function SentinelPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      <div className="max-w-6xl mx-auto px-6 py-12">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Floating Particles */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(12)].map((_, i) => (
+          <div
+            key={i}
+            className="floating-particle"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              width: `${4 + Math.random() * 8}px`,
+              height: `${4 + Math.random() * 8}px`,
+              background: `var(${['--primary-purple', '--soft-pink', '--soft-blue', '--soft-orange'][i % 4]})`,
+              animationDelay: `${Math.random() * 8}s`,
+              animationDuration: `${8 + Math.random() * 4}s`
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-16 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-4 mb-6">
-            <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg">
-              <Shield className="w-10 h-10 text-white" />
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-6 mb-8">
+            <div className="relative">
+              <div className="morphing-border p-6">
+                <div className="glass-card p-4 pulse-glow">
+                  <Shield className="w-12 h-12 text-purple-400" />
+                </div>
+              </div>
+              <div className="absolute -top-2 -right-2">
+                <div className="w-6 h-6 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center pulse-glow">
+                  <Bot className="w-3 h-3 text-white" />
+                </div>
+              </div>
             </div>
-            <h1 className="text-6xl font-light tracking-tight text-gray-800">
-              Sentinel
-            </h1>
+            <div>
+              <h1 className="text-7xl font-display text-gradient mb-2">
+                Sentinel
+              </h1>
+              <div className="flex items-center gap-2 text-sm text-purple-300">
+                <Sparkles className="w-4 h-4" />
+                <span>AI-Powered Security</span>
+              </div>
+            </div>
           </div>
-          <p className="text-xl text-gray-600 font-light mb-2">Agentic Wallet Security for DeFi</p>
-          <p className="text-sm text-gray-500">Autonomous protection powered by AI</p>
+          
+          <div className="max-w-3xl mx-auto">
+            <p className="text-2xl text-balance font-light mb-4 text-slate-300/90">
+              Agentic Wallet Security for <span className="text-gradient font-semibold">DeFi</span>
+            </p>
+            <p className="text-lg text-slate-400 text-balance">
+              Autonomous protection powered by AI agents, real-time monitoring, and instant recovery mechanisms
+            </p>
+          </div>
           
           {/* Live Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-200/50">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <Activity className="w-5 h-5 text-blue-600" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20 mt-16">
+            <div className="glass-card card-hover-lift group">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl group-hover:scale-110 transition-transform">
+                  <Activity className="w-6 h-6 text-blue-400" />
                 </div>
-                <span className="text-gray-700 font-medium">Blocks Monitored</span>
+                <span className="text-slate-300 font-medium">Blocks Monitored</span>
               </div>
-              <div className="text-3xl font-light text-gray-800">{systemStats.blocksMonitored.toLocaleString()}</div>
+              <div className="text-4xl font-display text-white mb-2">{systemStats.blocksMonitored.toLocaleString()}</div>
+              <div className="shimmer h-1 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500"></div>
             </div>
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-200/50">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-emerald-50 rounded-lg">
-                  <Shield className="w-5 h-5 text-emerald-600" />
+            
+            <div className="glass-card card-hover-lift group">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-2xl group-hover:scale-110 transition-transform">
+                  <Shield className="w-6 h-6 text-emerald-400" />
                 </div>
-                <span className="text-gray-700 font-medium">Threats Blocked</span>
+                <span className="text-slate-300 font-medium">Threats Blocked</span>
               </div>
-              <div className="text-3xl font-light text-gray-800">{systemStats.threatsBlocked}</div>
+              <div className="text-4xl font-display text-white mb-2">{systemStats.threatsBlocked}</div>
+              <div className="shimmer h-1 rounded-full bg-gradient-to-r from-emerald-500 to-green-500"></div>
             </div>
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-200/50">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-purple-50 rounded-lg">
-                  <Wallet className="w-5 h-5 text-purple-600" />
+            
+            <div className="glass-card card-hover-lift group">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl group-hover:scale-110 transition-transform">
+                  <Wallet className="w-6 h-6 text-purple-400" />
                 </div>
-                <span className="text-gray-700 font-medium">Wallets Protected</span>
+                <span className="text-slate-300 font-medium">Wallets Protected</span>
               </div>
-              <div className="text-3xl font-light text-gray-800">{systemStats.walletsProtected.toLocaleString()}</div>
+              <div className="text-4xl font-display text-white mb-2">{systemStats.walletsProtected.toLocaleString()}</div>
+              <div className="shimmer h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
             </div>
           </div>
         </div>
 
         {/* Wallet Connection */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-10 mb-12 shadow-xl border border-gray-200/50">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="p-3 bg-blue-50 rounded-xl">
-              <Wallet className="w-6 h-6 text-blue-600" />
+        <div className="glass-card mb-16 card-hover-lift">
+          <div className="flex items-center gap-6 mb-10">
+            <div className="relative">
+              <div className="p-4 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-2xl">
+                <Wallet className="w-8 h-8 text-purple-400" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full flex items-center justify-center">
+                <div className="w-2 h-2 bg-white rounded-full"></div>
+              </div>
             </div>
-            <h2 className="text-2xl font-light text-gray-800">Connect Wallet</h2>
-            <span className="px-4 py-2 bg-emerald-50 text-emerald-700 text-sm rounded-full border border-emerald-200">
-              Dynamic SDK
-            </span>
+            <div className="flex-1">
+              <h2 className="text-3xl font-display text-white mb-2">Wallet Connection</h2>
+              <div className="flex items-center gap-3">
+                <span className="px-4 py-2 bg-gradient-to-r from-emerald-500/20 to-green-500/20 text-emerald-300 text-sm font-medium rounded-full border border-emerald-500/30">
+                  <Star className="w-3 h-3 inline mr-1" />
+                  Dynamic SDK
+                </span>
+                <span className="px-4 py-2 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-300 text-sm font-medium rounded-full border border-blue-500/30">
+                  <Router className="w-3 h-3 inline mr-1" />
+                  Multi-Chain
+                </span>
+              </div>
+            </div>
           </div>
           
           {!isAuthenticated ? (
             <div className="text-center">
-              <p className="text-gray-600 mb-8 text-lg">Connect your wallet to start monitoring for security threats</p>
-              <DynamicWidget />
+              <div className="max-w-md mx-auto mb-10">
+                <p className="text-xl text-slate-300 mb-4 text-balance">Connect your wallet to activate</p>
+                <p className="text-slate-400 text-balance">Real-time threat detection and autonomous security</p>
+              </div>
+              <div className="flex justify-center">
+                <DynamicWidget />
+              </div>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between p-6 bg-emerald-50/50 rounded-2xl border border-emerald-200/50">
-                <div className="flex items-center gap-4">
-                  <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
-                  <span className="text-gray-800 font-medium">Wallet Connected</span>
+            <div className="space-y-8">
+              <div className="glass border border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-4 h-4 bg-emerald-400 rounded-full pulse-glow"></div>
+                    <span className="text-emerald-200 font-semibold">Wallet Connected</span>
+                  </div>
+                  <span className="text-slate-300 font-mono text-sm glass px-4 py-2">
+                    {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                  </span>
                 </div>
-                <span className="text-gray-600 font-mono text-sm bg-white px-3 py-1 rounded-lg">
-                  {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-                </span>
               </div>
               
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex-1 px-6 py-5 bg-gray-50/50 border border-gray-200 rounded-2xl">
-                  <span className="text-gray-500 text-sm font-medium">Connected Address</span>
-                  <div className="text-gray-800 font-mono mt-2 text-sm break-all">{walletAddress}</div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 glass">
+                  <div className="mb-4">
+                    <span className="text-slate-400 text-sm font-medium">Connected Address</span>
+                  </div>
+                  <div className="text-slate-200 font-mono text-sm break-all p-4 glass rounded-xl">
+                    {walletAddress}
+                  </div>
                 </div>
+                
                 <button
                   onClick={handlePollToggle}
                   disabled={!walletAddress}
-                  className={`px-8 py-4 rounded-2xl font-medium transition-all duration-300 flex items-center gap-3 ${
-                    isPolling 
-                      ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105' 
-                      : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 disabled:from-gray-400 disabled:to-gray-500 disabled:transform-none'
-                  }`}
+                  className={`${isPolling ? 'btn-secondary bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30' : 'btn-primary'} h-fit w-full`}
                 >
                   {isPolling ? (
                     <>
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      <div className="w-3 h-3 bg-current rounded-full pulse-glow"></div>
                       Stop Monitoring
                     </>
                   ) : (
@@ -257,9 +325,16 @@ function SentinelPage() {
               </div>
               
               {isPolling && (
-                <div className="mt-6 flex items-center gap-3 text-emerald-600 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-200/50">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium">Real-time monitoring active • Polling every 5 seconds</span>
+                <div className="glass border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 to-green-500/10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-3 h-3 bg-emerald-400 rounded-full pulse-glow"></div>
+                    <span className="text-emerald-200 font-medium">Real-time monitoring active • Polling every 5 seconds</span>
+                    <div className="ml-auto flex gap-1">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" style={{animationDelay: `${i * 0.2}s`}} />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -267,23 +342,41 @@ function SentinelPage() {
         </div>
 
         {/* Emergency Recovery */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-10 mb-12 shadow-xl border border-gray-200/50">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-orange-50 rounded-xl">
-                <Lock className="w-6 h-6 text-orange-600" />
+        <div className="glass-card mb-16 card-hover-lift">
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <div className="p-4 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-2xl">
+                  <Lock className="w-8 h-8 text-orange-400" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-red-400 to-orange-400 rounded-full flex items-center justify-center pulse-glow">
+                  <Zap className="w-2 h-2 text-white" />
+                </div>
               </div>
-              <h2 className="text-2xl font-light text-gray-800">Emergency Recovery</h2>
+              <div>
+                <h2 className="text-3xl font-display text-white mb-2">Emergency Recovery</h2>
+                <div className="flex items-center gap-3">
+                  <span className="px-4 py-2 bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-300 text-sm font-medium rounded-full border border-orange-500/30">
+                    <Cpu className="w-3 h-3 inline mr-1" />
+                    GuardianController
+                  </span>
+                  <span className="px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 text-sm font-medium rounded-full border border-blue-500/30">
+                    <Bot className="w-3 h-3 inline mr-1" />
+                    Automated
+                  </span>
+                </div>
+              </div>
             </div>
+            
             <button
               onClick={handleRecover}
               disabled={isRecovering || !walletAddress}
-              className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-medium rounded-2xl transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
+              className={`${isRecovering ? 'btn-secondary' : 'btn-primary bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600'} min-w-[200px]`}
             >
               {isRecovering ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Executing Recovery...
+                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                  Executing...
                 </>
               ) : (
                 <>
@@ -293,75 +386,153 @@ function SentinelPage() {
               )}
             </button>
           </div>
-          <p className="text-gray-600 text-lg leading-relaxed">
-            Instantly rotate wallet signer via GuardianController when threats are detected
-          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <p className="text-slate-300 text-lg leading-relaxed mb-4">
+                Instantly rotate wallet signer via GuardianController when threats are detected
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-slate-400">
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm">Multi-signature guardian protection</span>
+                </div>
+                <div className="flex items-center gap-3 text-slate-400">
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm">Instant signer rotation capability</span>
+                </div>
+                <div className="flex items-center gap-3 text-slate-400">
+                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm">Smart contract verification</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="glass rounded-2xl p-6">
+              <div className="mb-4">
+                <span className="text-slate-400 text-sm font-medium">Recovery Flow</span>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 rounded-lg flex items-center justify-center text-purple-400 text-sm font-semibold">1</div>
+                  <span className="text-slate-300 text-sm">Threat Detection</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-lg flex items-center justify-center text-blue-400 text-sm font-semibold">2</div>
+                  <span className="text-slate-300 text-sm">Identity Verification</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-lg flex items-center justify-center text-emerald-400 text-sm font-semibold">3</div>
+                  <span className="text-slate-300 text-sm">Signer Rotation</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Security Alerts */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl border border-gray-200/50">
-          <div className="p-10 border-b border-gray-200/50">
+        <div className="glass-card overflow-hidden mb-16">
+          <div className="border-b border-white/10 pb-8 mb-8">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-amber-50 rounded-xl">
-                  <AlertTriangle className="w-6 h-6 text-amber-600" />
+              <div className="flex items-center gap-6">
+                <div className="relative">
+                  <div className="p-4 bg-gradient-to-br from-amber-500/20 to-yellow-500/20 rounded-2xl">
+                    <AlertTriangle className="w-8 h-8 text-amber-400" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-red-400 to-yellow-400 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">{alerts.length}</span>
+                  </div>
                 </div>
-                <h2 className="text-2xl font-light text-gray-800">Security Alerts</h2>
-              </div>
-              <div className="flex items-center gap-3 text-gray-600">
-                <Clock className="w-4 h-4" />
-                <span className="text-sm font-medium">{alerts.length} alert{alerts.length !== 1 ? 's' : ''} found</span>
+                <div>
+                  <h2 className="text-3xl font-display text-white mb-2">Security Alerts</h2>
+                  <div className="flex items-center gap-3 text-slate-400">
+                    <Clock className="w-4 h-4" />
+                    <span className="text-sm font-medium">{alerts.length} alert{alerts.length !== 1 ? 's' : ''} detected</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
           {alerts.length === 0 ? (
-            <div className="p-16 text-center">
-              <div className="p-6 bg-emerald-50 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <Shield className="w-12 h-12 text-emerald-600" />
+            <div className="text-center py-20">
+              <div className="relative inline-block mb-8">
+                <div className="p-8 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-full pulse-glow">
+                  <Shield className="w-16 h-16 text-emerald-400" />
+                </div>
+                <div className="absolute -top-2 -right-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-emerald-400 to-green-400 rounded-full flex items-center justify-center pulse-glow">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-light text-gray-800 mb-3">All Clear</h3>
-              <p className="text-gray-600">No security threats detected. Your wallet is protected.</p>
+              <h3 className="text-2xl font-display text-white mb-4">All Clear</h3>
+              <p className="text-slate-400 text-lg max-w-md mx-auto text-balance">No security threats detected. Your wallet is protected by our AI-powered monitoring system.</p>
+              <div className="mt-8 flex justify-center gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="w-2 h-2 bg-emerald-400 rounded-full pulse-glow" style={{animationDelay: `${i * 0.3}s`}} />
+                ))}
+              </div>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200/50">
+            <div className="space-y-6">
               {alerts.map((alert, index) => {
                 const severityConfig = getSeverityConfig(alert.severity)
                 const IconComponent = severityConfig.icon
                 return (
                   <div 
                     key={alert.id} 
-                    className="p-8 hover:bg-gray-50/50 transition-all duration-300"
+                    className={`glass ${severityConfig.classes} card-hover-lift`}
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className="flex items-start gap-6">
-                      <div className={`p-3 rounded-xl ${severityConfig.classes.includes('alert-high') ? 'bg-red-50' : severityConfig.classes.includes('alert-medium') ? 'bg-amber-50' : 'bg-emerald-50'}`}>
-                        <IconComponent className={`w-5 h-5 ${severityConfig.classes.includes('alert-high') ? 'text-red-600' : severityConfig.classes.includes('alert-medium') ? 'text-amber-600' : 'text-emerald-600'}`} />
+                      <div className="relative">
+                        <div className={`p-4 rounded-2xl ${
+                          alert.severity === 'high' ? 'bg-gradient-to-br from-red-500/20 to-pink-500/20' :
+                          alert.severity === 'medium' ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20' :
+                          'bg-gradient-to-br from-emerald-500/20 to-green-500/20'
+                        }`}>
+                          <IconComponent className={`w-6 h-6 ${
+                            alert.severity === 'high' ? 'text-red-400' :
+                            alert.severity === 'medium' ? 'text-yellow-400' :
+                            'text-emerald-400'
+                          }`} />
+                        </div>
+                        {alert.severity === 'high' && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full pulse-glow"></div>
+                        )}
                       </div>
+                      
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-4 mb-3">
-                          <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">#{alert.id}</span>
-                          <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                            severityConfig.classes.includes('alert-high') ? 'bg-red-100 text-red-700' : 
-                            severityConfig.classes.includes('alert-medium') ? 'bg-amber-100 text-amber-700' : 
-                            'bg-emerald-100 text-emerald-700'
+                        <div className="flex items-center gap-4 mb-4">
+                          <span className="text-sm font-mono text-slate-400 glass px-3 py-1 rounded-lg">#{alert.id}</span>
+                          <span className={`px-4 py-2 text-xs font-semibold rounded-full ${
+                            alert.severity === 'high' ? 'bg-red-500/20 text-red-300 border border-red-500/30' : 
+                            alert.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' : 
+                            'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                           }`}>
                             {alert.severity.toUpperCase()}
                           </span>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-slate-400">
                             {new Date(alert.created_at).toLocaleString()}
                           </span>
                         </div>
-                        <h4 className="text-lg font-medium text-gray-800 mb-3">{alert.reason}</h4>
-                        <div className="flex items-center gap-6">
-                          <span className="text-sm text-gray-600">
-                            Wallet: <span className="font-mono bg-gray-100 px-2 py-1 rounded">{alert.wallet.slice(0, 6)}...{alert.wallet.slice(-4)}</span>
-                          </span>
+                        
+                        <h4 className="text-xl font-display text-white mb-4">{alert.reason}</h4>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-400 text-sm">Wallet:</span>
+                            <span className="font-mono text-slate-300 text-sm glass px-3 py-1 rounded-lg">
+                              {alert.wallet.slice(0, 6)}...{alert.wallet.slice(-4)}
+                            </span>
+                          </div>
+                          
                           <a
                             href={`http://localhost:8000/cases/${alert.id}.json`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+                            className="btn-secondary text-sm flex items-center gap-2 hover:text-purple-300"
                           >
                             <ExternalLink className="w-4 h-4" />
                             View Evidence
@@ -377,21 +548,80 @@ function SentinelPage() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-20 text-gray-500">
-          <p className="mb-4 text-lg font-light">Built for ETHGlobal NYC 2025</p>
-          <div className="flex items-center justify-center gap-8 text-sm">
-            <span className="flex items-center gap-2 bg-white/50 px-4 py-2 rounded-full">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-              API: Online
-            </span>
-            <span className="flex items-center gap-2 bg-white/50 px-4 py-2 rounded-full">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              Zircuit: Connected
-            </span>
-            <span className="flex items-center gap-2 bg-white/50 px-4 py-2 rounded-full">
-              <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-              Guardian: Active
-            </span>
+        <div className="text-center mt-32 relative">
+          <div className="glass-card">
+            <div className="mb-8">
+              <h3 className="text-2xl font-display text-gradient mb-4">Built for ETHGlobal NYC 2025</h3>
+              <p className="text-slate-400 max-w-2xl mx-auto text-balance">
+                Integrating cutting-edge AI agents, blockchain monitoring, and decentralized storage for the next generation of DeFi security
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+              <div className="glass rounded-2xl p-6 card-hover-lift">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                  <Activity className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div className="text-sm text-slate-400 mb-1">API Status</div>
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-emerald-400 rounded-full pulse-glow"></div>
+                  <span className="text-emerald-300 font-semibold">Online</span>
+                </div>
+              </div>
+              
+              <div className="glass rounded-2xl p-6 card-hover-lift">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                  <Router className="w-6 h-6 text-blue-400" />
+                </div>
+                <div className="text-sm text-slate-400 mb-1">Zircuit RPC</div>
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full pulse-glow"></div>
+                  <span className="text-blue-300 font-semibold">Connected</span>
+                </div>
+              </div>
+              
+              <div className="glass rounded-2xl p-6 card-hover-lift">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                  <Bot className="w-6 h-6 text-purple-400" />
+                </div>
+                <div className="text-sm text-slate-400 mb-1">Fetch.ai Agent</div>
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-purple-400 rounded-full pulse-glow"></div>
+                  <span className="text-purple-300 font-semibold">Active</span>
+                </div>
+              </div>
+              
+              <div className="glass rounded-2xl p-6 card-hover-lift">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                  <Shield className="w-6 h-6 text-orange-400" />
+                </div>
+                <div className="text-sm text-slate-400 mb-1">Guardian</div>
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-orange-400 rounded-full pulse-glow"></div>
+                  <span className="text-orange-300 font-semibold">Protected</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-center gap-4 text-slate-500 text-sm">
+              <span>Powered by</span>
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-purple-400" />
+                <span className="text-gradient font-semibold">Dynamic</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Bot className="w-4 h-4 text-blue-400" />
+                <span className="text-gradient font-semibold">Fetch.ai</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-emerald-400" />
+                <span className="text-gradient font-semibold">Walrus</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-orange-400" />
+                <span className="text-gradient font-semibold">Zircuit</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
