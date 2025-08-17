@@ -79,9 +79,7 @@ export default function SentinelPage() {
         },
       })
       status.api = response.ok
-      console.log('API Health Check:', response.ok, response.status)
     } catch (error) {
-      console.error('API Health Check Failed:', error)
       status.api = false
     }
 
@@ -120,17 +118,11 @@ export default function SentinelPage() {
   }
 
   const handleDemoAttack = async (attackType: string) => {
-    console.log('Demo attack triggered:', attackType, 'Wallet:', walletAddress)
-    
-    if (!walletAddress) {
-      console.log('No wallet address available')
-      return
-    }
+    if (!walletAddress) return
     
     setIsGeneratingDemo(true)
     
     try {
-      console.log('Sending demo attack request...')
       const response = await fetch('http://localhost:8000/api/demo/attack', {
         method: 'POST',
         headers: { 
@@ -143,9 +135,7 @@ export default function SentinelPage() {
         })
       })
       
-      console.log('Response status:', response.status)
       const result = await response.json()
-      console.log('Response data:', result)
       
       if (result.success) {
         // Show success notification

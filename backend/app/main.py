@@ -20,31 +20,12 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 app = FastAPI(title="Sentinel API", version="1.0.0")
 
-# CORS setup
-origins = [
-    "http://localhost:3000",
-    "http://localhost:3001", 
-    "http://localhost:3002",
-    "http://localhost:3003",
-    "http://localhost:3004",
-    "http://localhost:3005",
-    "http://localhost:3006",
-    "http://localhost:3007",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-    "http://127.0.0.1:3002",
-    "http://127.0.0.1:3003",
-    "http://127.0.0.1:3004",
-    "http://127.0.0.1:3005",
-    "http://127.0.0.1:3006",
-    "http://127.0.0.1:3007",
-]
-
+# CORS setup - Allow all localhost for demo
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
