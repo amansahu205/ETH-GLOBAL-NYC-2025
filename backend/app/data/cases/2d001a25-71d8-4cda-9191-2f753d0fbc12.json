@@ -1,0 +1,32 @@
+{
+  "name": "Sandwich Attack",
+  "description": "MEV bot front-running and back-running user transactions",
+  "severity": "medium",
+  "confidence": 0.8,
+  "indicators": [
+    "frontrun_approval",
+    "backrun_transfer",
+    "mev_gas_pattern",
+    "known_mev_bot"
+  ],
+  "signal_template": {
+    "base_signals": 2,
+    "approval_count": 1,
+    "transfer_count": 1,
+    "time_window_seconds": 24,
+    "max_allowance_ratio": 0.3,
+    "gas_price_multiplier": 2.5,
+    "mev_pattern": true
+  },
+  "recommendations": [
+    "Sandwich attack pattern detected",
+    "Consider using private mempool for transactions",
+    "Enable MEV protection mechanisms",
+    "Review transaction timing and gas strategies"
+  ],
+  "pattern_id": "sandwich_pattern",
+  "version": "1.0",
+  "created_for": "ETHGlobal NYC 2025 - Sentinel Demo",
+  "storage_type": "walrus_protocol",
+  "decentralized": true
+}

@@ -13,6 +13,7 @@ import uuid
 from .sqlite_store import SQLiteStore
 from .walrus import WalrusUploader
 from .fetchai_agent import evaluate_signals
+from .walrus_attack_patterns import WalrusAttackPatternManager
 
 # Demo malicious addresses
 MALICIOUS_ADDRESSES = {
@@ -26,16 +27,97 @@ MALICIOUS_ADDRESSES = {
 class DemoTransactionGenerator:
     def __init__(self):
         self.db = SQLiteStore()
+        self.pattern_manager = WalrusAttackPatternManager()
+        # Walrus blob IDs for attack patterns  
+        self.pattern_blob_ids = {
+            "drainer": "QBQETZUASAmg-B-D8X9wwBrIX3T44MTAiN224jtzfug",
+            "flash_loan": "fjwlh6_PgizYF52NyIN0goXMrt8lBewK4I43eZHn8bI", 
+            "sandwich": "local_sandwich_pattern",  # Fallback to local
+            "phishing": "local_phishing_pattern"  # Fallback to local
+        }
+    
+    async def fetch_attack_pattern(self, attack_type: str) -> Dict[str, Any]:
+        """Fetch attack pattern from Walrus Protocol"""
+        blob_id = self.pattern_blob_ids.get(attack_type)
+        if not blob_id:
+            raise ValueError(f"Unknown attack type: {attack_type}")
+        
+        try:
+            pattern = await self.pattern_manager.fetch_pattern_from_walrus(blob_id)
+            if pattern:
+                print(f"Fetched {attack_type} pattern from Walrus: {pattern.get('name', 'Unknown')}")
+                return pattern
+            else:
+                print(f"Failed to fetch {attack_type} pattern from Walrus, using fallback")
+                return self._get_fallback_pattern(attack_type)
+        except Exception as e:
+            print(f"Error fetching {attack_type} pattern: {e}")
+            return self._get_fallback_pattern(attack_type)
+    
+    def _get_fallback_pattern(self, attack_type: str) -> Dict[str, Any]:
+        """Fallback patterns if Walrus fetch fails"""
+        fallback_patterns = {
+            "drainer": {
+                "name": "Token Drainer Attack",
+                "signal_template": {
+                    "base_signals": 4,
+                    "approval_count": 4,
+                    "transfer_count": 2,
+                    "max_allowance_ratio": 1.0,
+                    "gas_price_multiplier": 1.5
+                }
+            },
+            "flash_loan": {
+                "name": "Flash Loan Attack",
+                "signal_template": {
+                    "base_signals": 2,
+                    "approval_count": 1,
+                    "transfer_count": 1,
+                    "max_allowance_ratio": 0.6,
+                    "gas_price_multiplier": 3.0,
+                    "same_block": True
+                }
+            },
+            "sandwich": {
+                "name": "Sandwich Attack",
+                "signal_template": {
+                    "base_signals": 2,
+                    "approval_count": 1,
+                    "transfer_count": 1,
+                    "max_allowance_ratio": 0.3,
+                    "gas_price_multiplier": 2.5
+                }
+            },
+            "phishing": {
+                "name": "Phishing Contract",
+                "signal_template": {
+                    "base_signals": 3,
+                    "approval_count": 2,
+                    "transfer_count": 1,
+                    "max_allowance_ratio": 0.8,
+                    "gas_price_multiplier": 1.2
+                }
+            }
+        }
+        return fallback_patterns.get(attack_type, {})
         
     async def generate_drainer_attack(self, victim_wallet: str) -> List[Dict[str, Any]]:
-        """Generate a token drainer attack scenario"""
+        """Generate a token drainer attack scenario using Walrus-stored patterns"""
+        pattern = await self.fetch_attack_pattern("drainer")
+        template = pattern.get("signal_template", {})
+        
         malicious_spender = "0x1234567890123456789012345678901234567890"
         current_time = datetime.now().timestamp()
         
         signals = []
         
+        # Get pattern parameters
+        approval_count = template.get("approval_count", 4)
+        gas_multiplier = template.get("gas_price_multiplier", 1.5)
+        allowance_ratio = template.get("max_allowance_ratio", 1.0)
+        
         # Multiple high-value approvals to unknown spender
-        for i in range(4):
+        for i in range(approval_count):
             signals.append({
                 'type': 'approval',
                 'timestamp': current_time + i * 30,  # 30 seconds apart
@@ -45,9 +127,9 @@ class DemoTransactionGenerator:
                 'block_number': 7527650 + i,
                 'contract_address': f'0x{uuid.uuid4().hex[:40]}',
                 'approval_value': 115792089237316195423570985008687907853269984665640564039457584007913129639935,  # MAX_UINT256
-                'allowance_ratio': 1.0,  # 100% approval
+                'allowance_ratio': allowance_ratio,
                 'spender_known': False,
-                'gas_price': 150000000000,  # High gas (150 gwei) indicating urgency
+                'gas_price': int(100000000000 * gas_multiplier),  # Dynamic gas based on pattern
                 'to_contract': True,
                 'wallet_address': victim_wallet
             })
@@ -72,11 +154,19 @@ class DemoTransactionGenerator:
         return signals
     
     async def generate_flash_loan_attack(self, victim_wallet: str) -> List[Dict[str, Any]]:
-        """Generate a flash loan attack scenario"""
+        """Generate a flash loan attack scenario using Walrus-stored patterns"""
+        pattern = await self.fetch_attack_pattern("flash_loan")
+        template = pattern.get("signal_template", {})
+        
         attacker_contract = "0x1111111111111111111111111111111111111111"
         current_time = datetime.now().timestamp()
         
         signals = []
+        
+        # Get pattern parameters
+        gas_multiplier = template.get("gas_price_multiplier", 3.0)
+        allowance_ratio = template.get("max_allowance_ratio", 0.6)
+        same_block = template.get("same_block", True)
         
         # Rapid sequence of approvals and transfers within same block
         base_time = current_time
@@ -91,9 +181,9 @@ class DemoTransactionGenerator:
             'block_number': 7527660,
             'contract_address': f'0x{uuid.uuid4().hex[:40]}',
             'approval_value': 50000000000000000000000,  # 50k tokens
-            'allowance_ratio': 0.6,
+            'allowance_ratio': allowance_ratio,
             'spender_known': False,
-            'gas_price': 300000000000,  # Extremely high gas (300 gwei)
+            'gas_price': int(100000000000 * gas_multiplier),  # Dynamic gas based on pattern
             'to_contract': True,
             'wallet_address': victim_wallet
         })
@@ -105,11 +195,11 @@ class DemoTransactionGenerator:
             'from': victim_wallet,
             'to': attacker_contract,
             'tx_hash': f'0x{uuid.uuid4().hex}',
-            'block_number': 7527660,  # Same block
+            'block_number': 7527660 if same_block else 7527661,  # Dynamic block based on pattern
             'contract_address': f'0x{uuid.uuid4().hex[:40]}',
             'transfer_value': 50000000000000000000000,
-            'amount_ratio': 0.6,
-            'gas_price': 300000000000,
+            'amount_ratio': allowance_ratio,
+            'gas_price': int(100000000000 * gas_multiplier),
             'to_contract': True,
             'wallet_address': victim_wallet
         })
@@ -117,9 +207,16 @@ class DemoTransactionGenerator:
         return signals
     
     async def generate_sandwich_attack(self, victim_wallet: str) -> List[Dict[str, Any]]:
-        """Generate a sandwich attack scenario"""
+        """Generate a sandwich attack scenario using Walrus-stored patterns"""
+        pattern = await self.fetch_attack_pattern("sandwich")
+        template = pattern.get("signal_template", {})
+        
         mev_bot = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
         current_time = datetime.now().timestamp()
+        
+        # Get pattern parameters
+        gas_multiplier = template.get("gas_price_multiplier", 2.5)
+        allowance_ratio = template.get("max_allowance_ratio", 0.3)
         
         signals = []
         
@@ -133,9 +230,9 @@ class DemoTransactionGenerator:
             'block_number': 7527665,
             'contract_address': f'0x{uuid.uuid4().hex[:40]}',
             'approval_value': 10000000000000000000000,  # 10k tokens
-            'allowance_ratio': 0.3,
+            'allowance_ratio': allowance_ratio,
             'spender_known': False,
-            'gas_price': 250000000000,  # High gas (250 gwei)
+            'gas_price': int(100000000000 * gas_multiplier),  # Dynamic gas based on pattern
             'to_contract': True,
             'wallet_address': victim_wallet
         })
@@ -150,8 +247,8 @@ class DemoTransactionGenerator:
             'block_number': 7527665,
             'contract_address': f'0x{uuid.uuid4().hex[:40]}',
             'transfer_value': 8000000000000000000000,
-            'amount_ratio': 0.25,
-            'gas_price': 250000000000,
+            'amount_ratio': allowance_ratio * 0.8,  # Slightly less than approval
+            'gas_price': int(100000000000 * gas_multiplier),
             'to_contract': True,
             'wallet_address': victim_wallet
         })
@@ -159,22 +256,28 @@ class DemoTransactionGenerator:
         return signals
     
     async def create_demo_alert(self, wallet: str, attack_type: str):
-        """Create a demo alert for presentation"""
+        """Create a demo alert for presentation using Walrus-stored patterns"""
+        
+        # Fetch pattern from Walrus first for title/description
+        pattern = await self.fetch_attack_pattern(attack_type)
+        pattern_name = pattern.get("name", f"{attack_type.title()} Attack")
         
         if attack_type == "drainer":
             signals = await self.generate_drainer_attack(wallet)
-            title = "🚨 Token Drainer Attack Detected"
+            title = f"Token Drainer Attack Detected"
             description = "Multiple high-value approvals to unknown contract detected"
         elif attack_type == "flash_loan":
             signals = await self.generate_flash_loan_attack(wallet)
-            title = "⚡ Flash Loan Attack Detected"
+            title = f"Flash Loan Attack Detected"
             description = "Rapid approval and transfer in single block detected"
         elif attack_type == "sandwich":
             signals = await self.generate_sandwich_attack(wallet)
-            title = "🥪 Sandwich Attack Detected"
+            title = f"Sandwich Attack Detected"
             description = "MEV bot manipulation pattern detected"
         else:
             raise ValueError(f"Unknown attack type: {attack_type}")
+        
+        print(f"Generated {pattern_name} using Walrus-stored pattern")
         
         # Evaluate signals using real Fetch.ai agent
         evaluation = evaluate_signals(signals)
@@ -206,7 +309,7 @@ class DemoTransactionGenerator:
             reason=case_data['reason']
         )
         
-        print(f"✅ Created {attack_type} attack demo for wallet {wallet}")
+        print(f"Created {attack_type} attack demo for wallet {wallet}")
         print(f"   Alert ID: {alert_id}")
         print(f"   Severity: {evaluation['severity']}")
         print(f"   Evidence: {evidence_url}")
@@ -229,7 +332,7 @@ async def main():
         "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"   # Demo wallet 3
     ]
     
-    print("🎭 Generating demo malicious transactions for ETHGlobal presentation...")
+    print("Generating demo malicious transactions for ETHGlobal presentation...")
     
     # Generate different types of attacks
     for i, wallet in enumerate(demo_wallets):
@@ -245,7 +348,7 @@ async def main():
         # Wait between attacks
         await asyncio.sleep(2)
     
-    print("\n🎬 Demo data generation complete! Ready for presentation.")
+    print("\nDemo data generation complete! Ready for presentation.")
 
 if __name__ == "__main__":
     asyncio.run(main())

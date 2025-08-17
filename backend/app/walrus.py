@@ -30,7 +30,7 @@ class WalrusUploader:
             json_data = json.dumps(case_obj, indent=2, default=str)
             blob_data = json_data.encode('utf-8')
             
-            print(f"📦 Uploading to Walrus: {len(blob_data)} bytes")
+            print(f"Uploading to Walrus: {len(blob_data)} bytes")
             
             # Upload to Walrus using PUT request
             upload_url = f"{self.publisher_url}/v1/blobs?epochs={self.epochs}"
@@ -45,10 +45,10 @@ class WalrusUploader:
                         blob_id = None
                         if 'alreadyCertified' in result:
                             blob_id = result['alreadyCertified']['blobId']
-                            print(f"🔗 Walrus: Blob already exists - ID: {blob_id}")
+                            print(f"Walrus: Blob already exists - ID: {blob_id}")
                         elif 'newlyCreated' in result:
                             blob_id = result['newlyCreated']['blobObject']['blobId']
-                            print(f"🔗 Walrus: New blob created - ID: {blob_id}")
+                            print(f"Walrus: New blob created - ID: {blob_id}")
                         
                         if blob_id:
                             # Verify blob is accessible
@@ -56,16 +56,16 @@ class WalrusUploader:
                                 return self.get_blob_url(blob_id)
                         
                         # Fallback if blob ID not found
-                        print("⚠️ Walrus: Blob ID not found in response, falling back to local storage")
+                        print("Walrus: Blob ID not found in response, falling back to local storage")
                         return self._upload_case_local(case_obj)
                     else:
                         error_text = await response.text()
-                        print(f"❌ Walrus upload failed: HTTP {response.status} - {error_text}")
+                        print(f"Walrus upload failed: HTTP {response.status} - {error_text}")
                         return self._upload_case_local(case_obj)
                         
         except Exception as e:
-            print(f"❌ Walrus upload error: {str(e)}")
-            print("🔄 Falling back to local storage")
+            print(f"Walrus upload error: {str(e)}")
+            print("Falling back to local storage")
             return self._upload_case_local(case_obj)
     
     async def _verify_blob_availability(self, blob_id: str) -> bool:
@@ -79,14 +79,14 @@ class WalrusUploader:
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.head(verify_url) as response:
                     if response.status == 200:
-                        print(f"✅ Walrus: Blob {blob_id} is available")
+                        print(f"Walrus: Blob {blob_id} is available")
                         return True
                     else:
-                        print(f"⚠️ Walrus: Blob {blob_id} verification failed: HTTP {response.status}")
+                        print(f"Walrus: Blob {blob_id} verification failed: HTTP {response.status}")
                         return False
                         
         except Exception as e:
-            print(f"⚠️ Walrus verification error: {str(e)}")
+            print(f"Walrus verification error: {str(e)}")
             return False
     
     def get_blob_url(self, blob_id: str) -> str:
@@ -111,7 +111,7 @@ class WalrusUploader:
         
         # Return public URL
         walrus_base = os.getenv("WALRUS_BASE", "http://localhost:8000/cases")
-        print(f"💾 Local storage: {walrus_base}/{case_filename}")
+        print(f"Local storage: {walrus_base}/{case_filename}")
         return f"{walrus_base}/{case_filename}"
 
 # Legacy function for backward compatibility

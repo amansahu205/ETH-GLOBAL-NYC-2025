@@ -1,0 +1,31 @@
+{
+  "name": "Phishing Contract",
+  "description": "Interaction with known phishing or malicious contracts",
+  "severity": "high",
+  "confidence": 0.85,
+  "indicators": [
+    "malicious_contract_address",
+    "unusual_approval_pattern",
+    "suspicious_function_calls"
+  ],
+  "signal_template": {
+    "base_signals": 3,
+    "approval_count": 2,
+    "transfer_count": 1,
+    "time_window_seconds": 60,
+    "max_allowance_ratio": 0.8,
+    "gas_price_multiplier": 1.2,
+    "contract_verified": false
+  },
+  "recommendations": [
+    "Phishing contract interaction detected",
+    "Do not approve any more transactions",
+    "Verify contract legitimacy before interacting",
+    "Use wallet security tools for contract verification"
+  ],
+  "pattern_id": "phishing_pattern",
+  "version": "1.0",
+  "created_for": "ETHGlobal NYC 2025 - Sentinel Demo",
+  "storage_type": "walrus_protocol",
+  "decentralized": true
+}

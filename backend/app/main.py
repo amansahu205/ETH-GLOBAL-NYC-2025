@@ -88,17 +88,17 @@ async def get_alerts(wallet: Optional[str] = Query(None)):
     
     if wallet:
         cursor.execute("""
-            SELECT id, wallet, severity, reason, signals, created_at 
+            SELECT id, wallet, severity, reason, ts 
             FROM alerts 
             WHERE wallet = ? 
-            ORDER BY created_at DESC 
+            ORDER BY ts DESC 
             LIMIT 20
         """, (wallet,))
     else:
         cursor.execute("""
-            SELECT id, wallet, severity, reason, signals, created_at 
+            SELECT id, wallet, severity, reason, ts 
             FROM alerts 
-            ORDER BY created_at DESC 
+            ORDER BY ts DESC 
             LIMIT 20
         """)
     
@@ -109,8 +109,7 @@ async def get_alerts(wallet: Optional[str] = Query(None)):
             "wallet": row[1],
             "severity": row[2],
             "reason": row[3],
-            "signals": json.loads(row[4]),
-            "created_at": row[5]
+            "timestamp": row[4]
         })
     
     conn.close()
