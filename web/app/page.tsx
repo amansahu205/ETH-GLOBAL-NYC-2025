@@ -15,6 +15,7 @@ interface Alert {
 export default function SentinelPage() {
   const { primaryWallet, user } = useDynamicContext()
   const isAuthenticated = !!primaryWallet && !!user
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
   const [isPolling, setIsPolling] = useState(false)
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [isRecovering, setIsRecovering] = useState(false)
@@ -44,7 +45,7 @@ export default function SentinelPage() {
     if (!walletAddress) return
     
     try {
-      const response = await fetch(`http://localhost:8000/api/alerts?wallet=${walletAddress}`)
+      const response = await fetch(`${API_BASE_URL}/api/alerts?wallet=${walletAddress}`)
       const data = await response.json()
       setAlerts(data.alerts || [])
     } catch (error) {
@@ -54,13 +55,13 @@ export default function SentinelPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/stats')
+      const response = await fetch(`${API_BASE_URL}/api/stats`)
       const data = await response.json()
       setSystemStats(data)
     } catch (error) {
       console.error('Failed to fetch stats:', error)
     }
-  }, [])
+  }, [API_BASE_URL])
 
   const checkServiceStatus = useCallback(async () => {
     const status = {
@@ -72,7 +73,7 @@ export default function SentinelPage() {
 
     // Check API status
     try {
-      const response = await fetch('http://localhost:8000/health', {
+      const response = await fetch(`${API_BASE_URL}/health`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -89,7 +90,7 @@ export default function SentinelPage() {
     status.zircuitRpc = true
 
     setServiceStatus(status)
-  }, [])
+  }, [API_BASE_URL])
 
   useEffect(() => {
     if (walletAddress) {
@@ -123,7 +124,7 @@ export default function SentinelPage() {
     setIsGeneratingDemo(true)
     
     try {
-      const response = await fetch('http://localhost:8000/api/demo/attack', {
+      const response = await fetch(`${API_BASE_URL}/api/demo/attack`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -163,7 +164,7 @@ export default function SentinelPage() {
     
     try {
       // Step-up authentication
-      await fetch('http://localhost:8000/api/identity/stepup', {
+      await fetch(`${API_BASE_URL}/api/identity/stepup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ otp: '123456' })
@@ -173,7 +174,7 @@ export default function SentinelPage() {
       const newSigner = '0xcEa3aF0a65e3C865A32F9367A23F4165051DF3F5'
       
       // Rotate signer
-      const response = await fetch('http://localhost:8000/api/actions/rotate', {
+      const response = await fetch(`${API_BASE_URL}/api/actions/rotate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newSigner })
