@@ -10,8 +10,8 @@ from web3.providers import HTTPProvider
 from dotenv import load_dotenv
 
 from .sqlite_store import SQLiteStore
-from .walrus import upload_case_local
-from .rules import evaluate_signals
+from .walrus import WalrusUploader
+from .fetchai_agent import evaluate_signals
 
 load_dotenv()
 
@@ -47,7 +47,7 @@ class ZircuitListener:
             logger.error(f"Connection error: {e}")
             return False
     
-    def process_event(self, event: Dict[str, Any]):
+    async def process_event(self, event: Dict[str, Any]):
         """Process a blockchain event and generate alerts"""
         try:
             # Extract event data
@@ -79,7 +79,7 @@ class ZircuitListener:
                     }
                     
                     self.wallet_events[owner].append(signal)
-                    self.evaluate_wallet_signals(owner)
+                    await self.evaluate_wallet_signals(owner)
                     
             elif event_signature == TRANSFER_SIGNATURE:
                 # Transfer(from, to, value)
@@ -98,12 +98,12 @@ class ZircuitListener:
                     }
                     
                     self.wallet_events[from_addr].append(signal)
-                    self.evaluate_wallet_signals(from_addr)
+                    await self.evaluate_wallet_signals(from_addr)
                     
         except Exception as e:
             logger.error(f"Error processing event: {e}")
     
-    def evaluate_wallet_signals(self, wallet: str):
+    async def evaluate_wallet_signals(self, wallet: str):
         """Evaluate signals for a wallet and create alerts if needed"""
         try:
             # Get recent signals (last 15 minutes)
@@ -144,9 +144,10 @@ class ZircuitListener:
                     'timestamp': datetime.now().isoformat()
                 }
                 
-                # Upload to Walrus and update alert
+                # Upload to Walrus Protocol and update alert
                 try:
-                    walrus_url = upload_case_local(case_data)
+                    walrus = WalrusUploader()
+                    walrus_url = await walrus.upload_case_to_walrus(case_data)
                     
                     # Update alert with Walrus URL (would need to add this to SQLiteStore)
                     logger.info(f"Case uploaded: {walrus_url}")
@@ -180,7 +181,7 @@ class ZircuitListener:
                     
                     for log in logs:
                         if self.running:
-                            self.process_event(log)
+                            await self.process_event(log)
                     
                     last_block = current_block
                 

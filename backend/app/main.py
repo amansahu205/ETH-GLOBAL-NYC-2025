@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 import uuid
 
 from .actions import rotate_signer, revoke_erc20
+from .walrus import WalrusUploader
+from .fetchai_agent import evaluate_signals
 
 load_dotenv()
 
@@ -121,13 +123,13 @@ async def create_case_snapshot(request: SnapshotRequest):
             "severity": request.severity,
             "reason": request.reason,
             "signals": request.signals,
-            "timestamp": timestamp
+            "timestamp": timestamp,
+            "analysis_engine": "Fetch.ai uAgent + Walrus Storage"
         }
         
-        # Write to file
-        case_file = os.path.join(CASES_DIR, f"{case_id}.json")
-        with open(case_file, 'w') as f:
-            json.dump(case_data, f, indent=2)
+        # Upload to Walrus Protocol (production)
+        walrus = WalrusUploader()
+        evidence_url = await walrus.upload_case_to_walrus(case_data)
         
         # Save to database
         conn = sqlite3.connect(DB_PATH)
@@ -139,10 +141,6 @@ async def create_case_snapshot(request: SnapshotRequest):
         alert_id = cursor.lastrowid
         conn.commit()
         conn.close()
-        
-        # Generate URL
-        walrus_base = os.getenv("WALRUS_BASE", "http://localhost:8000/cases")
-        evidence_url = f"{walrus_base}/{case_id}.json"
         
         return {
             "case_id": case_id,
