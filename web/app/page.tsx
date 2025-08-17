@@ -13,7 +13,8 @@ interface Alert {
 }
 
 export default function SentinelPage() {
-  const { primaryWallet, user, isAuthenticated } = useDynamicContext()
+  const { primaryWallet, user } = useDynamicContext()
+  const isAuthenticated = !!primaryWallet && !!user
   const [isPolling, setIsPolling] = useState(false)
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [isRecovering, setIsRecovering] = useState(false)
@@ -71,9 +72,16 @@ export default function SentinelPage() {
 
     // Check API status
     try {
-      const response = await fetch('http://localhost:8000/health')
+      const response = await fetch('http://localhost:8000/health', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      })
       status.api = response.ok
+      console.log('API Health Check:', response.ok, response.status)
     } catch (error) {
+      console.error('API Health Check Failed:', error)
       status.api = false
     }
 
@@ -92,35 +100,52 @@ export default function SentinelPage() {
   }, [walletAddress, fetchAlerts])
 
   useEffect(() => {
-    fetchStats()
-    checkServiceStatus()
+    if (!mounted) return
+    
+    // Initial check with small delay to ensure backend is ready
+    setTimeout(() => {
+      fetchStats()
+      checkServiceStatus()
+    }, 1000)
+    
     const interval = setInterval(() => {
       fetchStats()
       checkServiceStatus()
     }, 5000)
     return () => clearInterval(interval)
-  }, [fetchStats, checkServiceStatus])
+  }, [fetchStats, checkServiceStatus, mounted])
 
   const handlePollToggle = () => {
     setIsPolling(!isPolling)
   }
 
   const handleDemoAttack = async (attackType: string) => {
-    if (!walletAddress) return
+    console.log('Demo attack triggered:', attackType, 'Wallet:', walletAddress)
+    
+    if (!walletAddress) {
+      console.log('No wallet address available')
+      return
+    }
     
     setIsGeneratingDemo(true)
     
     try {
+      console.log('Sending demo attack request...')
       const response = await fetch('http://localhost:8000/api/demo/attack', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: JSON.stringify({ 
           wallet: walletAddress, 
           attack_type: attackType 
         })
       })
       
+      console.log('Response status:', response.status)
       const result = await response.json()
+      console.log('Response data:', result)
       
       if (result.success) {
         // Show success notification
