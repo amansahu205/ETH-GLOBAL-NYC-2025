@@ -52,12 +52,14 @@ class ZircuitListener:
         try:
             # Extract event data
             topics = event.get('topics', [])
+            data = event.get('data', '0x')
             if not topics:
                 return
                 
             event_signature = topics[0]
             block_number = event.get('blockNumber', 0)
             tx_hash = event.get('transactionHash', '')
+            contract_address = event.get('address', '')
             timestamp = int(datetime.now().timestamp())
             
             # Parse based on event type
@@ -67,6 +69,20 @@ class ZircuitListener:
                     owner = self.w3.to_checksum_address('0x' + topics[1][-40:])
                     spender = self.w3.to_checksum_address('0x' + topics[2][-40:])
                     
+                    # Parse approval value from data
+                    approval_value = int(data, 16) if data and data != '0x' else 0
+                    
+                    # Calculate real allowance ratio
+                    allowance_ratio = await self.calculate_allowance_ratio(
+                        owner, contract_address, approval_value
+                    )
+                    
+                    # Check if spender is known/trusted
+                    spender_known = await self.check_address_reputation(spender)
+                    
+                    # Get gas price for this transaction
+                    gas_price = await self.get_transaction_gas_price(tx_hash)
+                    
                     signal = {
                         'type': 'approval',
                         'timestamp': timestamp,
@@ -74,8 +90,12 @@ class ZircuitListener:
                         'spender': spender,
                         'tx_hash': tx_hash,
                         'block_number': block_number,
-                        'allowance_ratio': 0.3,  # Mock ratio - would calculate from actual data
-                        'spender_known': False   # Mock - would check against known addresses
+                        'contract_address': contract_address,
+                        'approval_value': approval_value,
+                        'allowance_ratio': allowance_ratio,
+                        'spender_known': spender_known,
+                        'gas_price': gas_price,
+                        'to_contract': await self.is_contract_address(spender)
                     }
                     
                     self.wallet_events[owner].append(signal)
@@ -87,6 +107,17 @@ class ZircuitListener:
                     from_addr = self.w3.to_checksum_address('0x' + topics[1][-40:])
                     to_addr = self.w3.to_checksum_address('0x' + topics[2][-40:])
                     
+                    # Parse transfer value from data
+                    transfer_value = int(data, 16) if data and data != '0x' else 0
+                    
+                    # Calculate real amount ratio
+                    amount_ratio = await self.calculate_transfer_ratio(
+                        from_addr, contract_address, transfer_value
+                    )
+                    
+                    # Get gas price for this transaction
+                    gas_price = await self.get_transaction_gas_price(tx_hash)
+                    
                     signal = {
                         'type': 'transfer',
                         'timestamp': timestamp,
@@ -94,7 +125,11 @@ class ZircuitListener:
                         'to': to_addr,
                         'tx_hash': tx_hash,
                         'block_number': block_number,
-                        'amount_ratio': 0.25  # Mock ratio - would calculate from actual data
+                        'contract_address': contract_address,
+                        'transfer_value': transfer_value,
+                        'amount_ratio': amount_ratio,
+                        'gas_price': gas_price,
+                        'to_contract': await self.is_contract_address(to_addr)
                     }
                     
                     self.wallet_events[from_addr].append(signal)
@@ -102,6 +137,95 @@ class ZircuitListener:
                     
         except Exception as e:
             logger.error(f"Error processing event: {e}")
+    
+    async def calculate_allowance_ratio(self, owner: str, token_address: str, approval_value: int) -> float:
+        """Calculate the ratio of approval value to wallet's token balance"""
+        try:
+            # ERC20 balanceOf function signature
+            balance_selector = "0x70a08231"
+            owner_padded = owner[2:].zfill(64)  # Remove 0x and pad to 64 chars
+            
+            balance_call = await self.w3.eth.call({
+                'to': token_address,
+                'data': balance_selector + owner_padded
+            })
+            
+            balance = int(balance_call.hex(), 16) if balance_call else 0
+            
+            if balance == 0:
+                return 1.0 if approval_value > 0 else 0.0
+            
+            ratio = min(approval_value / balance, 1.0)
+            return ratio
+            
+        except Exception as e:
+            logger.warning(f"Could not calculate allowance ratio: {e}")
+            # Fallback: assume high risk if we can't calculate
+            return 0.8 if approval_value > 10**18 else 0.3  # 1 token threshold
+    
+    async def calculate_transfer_ratio(self, from_addr: str, token_address: str, transfer_value: int) -> float:
+        """Calculate the ratio of transfer value to wallet's previous token balance"""
+        try:
+            # Get current balance (after transfer)
+            balance_selector = "0x70a08231"
+            from_padded = from_addr[2:].zfill(64)
+            
+            current_balance_call = await self.w3.eth.call({
+                'to': token_address,
+                'data': balance_selector + from_padded
+            })
+            
+            current_balance = int(current_balance_call.hex(), 16) if current_balance_call else 0
+            previous_balance = current_balance + transfer_value
+            
+            if previous_balance == 0:
+                return 1.0 if transfer_value > 0 else 0.0
+            
+            ratio = min(transfer_value / previous_balance, 1.0)
+            return ratio
+            
+        except Exception as e:
+            logger.warning(f"Could not calculate transfer ratio: {e}")
+            # Fallback: assume medium risk
+            return 0.4 if transfer_value > 10**18 else 0.1
+    
+    async def check_address_reputation(self, address: str) -> bool:
+        """Check if an address is known/trusted"""
+        # Known good addresses (DEX routers, popular protocols)
+        KNOWN_GOOD_ADDRESSES = {
+            # Uniswap V2 Router
+            "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+            # Uniswap V3 Router  
+            "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+            # 1inch Router
+            "0x1111111254EEB25477B68fb85Ed929f73A960582",
+            # SushiSwap Router
+            "0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F",
+            # Curve.fi
+            "0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7",
+            # Aave V3 Pool
+            "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2"
+        }
+        
+        # Convert to checksum address for comparison
+        checksum_addr = self.w3.to_checksum_address(address)
+        return checksum_addr in KNOWN_GOOD_ADDRESSES
+    
+    async def is_contract_address(self, address: str) -> bool:
+        """Check if an address is a contract"""
+        try:
+            code = await self.w3.eth.get_code(address)
+            return len(code) > 0
+        except Exception:
+            return False
+    
+    async def get_transaction_gas_price(self, tx_hash: str) -> int:
+        """Get the gas price used in a transaction"""
+        try:
+            tx = await self.w3.eth.get_transaction(tx_hash)
+            return tx.get('gasPrice', 0)
+        except Exception:
+            return 0
     
     async def evaluate_wallet_signals(self, wallet: str):
         """Evaluate signals for a wallet and create alerts if needed"""

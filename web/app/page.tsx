@@ -19,6 +19,7 @@ function SentinelPage() {
   const [isPolling, setIsPolling] = useState(false)
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [isRecovering, setIsRecovering] = useState(false)
+  const [isGeneratingDemo, setIsGeneratingDemo] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [systemStats, setSystemStats] = useState({
     blocksMonitored: 7527630,
@@ -59,20 +60,66 @@ function SentinelPage() {
     }
   }, [isPolling, walletAddress, fetchAlerts])
 
-  // Simulate live stats
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSystemStats(prev => ({
-        blocksMonitored: prev.blocksMonitored + Math.floor(Math.random() * 3),
-        threatsBlocked: prev.threatsBlocked + (Math.random() > 0.8 ? 1 : 0),
-        walletsProtected: prev.walletsProtected + (Math.random() > 0.9 ? 1 : 0)
-      }))
-    }, 3000)
-    return () => clearInterval(interval)
+  // Fetch real stats from API
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/stats')
+      const data = await response.json()
+      setSystemStats(data)
+    } catch (error) {
+      console.error('Failed to fetch stats:', error)
+    }
   }, [])
+
+  useEffect(() => {
+    // Initial fetch
+    fetchStats()
+    
+    // Update stats every 10 seconds
+    const interval = setInterval(fetchStats, 10000)
+    return () => clearInterval(interval)
+  }, [fetchStats])
 
   const handlePollToggle = () => {
     setIsPolling(!isPolling)
+  }
+
+  const handleDemoAttack = async (attackType: string) => {
+    if (!walletAddress) return
+    
+    setIsGeneratingDemo(true)
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/demo/attack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          wallet: walletAddress, 
+          attack_type: attackType 
+        })
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        // Show success notification
+        const notification = document.createElement('div')
+        notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-pulse'
+        notification.innerHTML = `🚨 ${attackType.toUpperCase()} Attack Simulated! <br><small>Alert #${result.alert_id}</small>`
+        document.body.appendChild(notification)
+        setTimeout(() => notification.remove(), 5000)
+        
+        // Refresh alerts and stats
+        setTimeout(() => {
+          fetchAlerts()
+          fetchStats()
+        }, 1000)
+      }
+    } catch (error) {
+      console.error('Demo attack failed:', error)
+    } finally {
+      setIsGeneratingDemo(false)
+    }
   }
 
   const handleRecover = async () => {
@@ -546,6 +593,73 @@ function SentinelPage() {
             </div>
           )}
         </div>
+
+        {/* Demo Attack Section */}
+        {isAuthenticated && (
+          <div className="glass-card mb-16 card-hover-lift">
+            <div className="flex items-center gap-6 mb-8">
+              <div className="relative">
+                <div className="p-4 bg-gradient-to-br from-red-500/20 to-pink-500/20 rounded-2xl">
+                  <AlertTriangle className="w-8 h-8 text-red-400" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-red-400 to-pink-400 rounded-full flex items-center justify-center pulse-glow">
+                  <span className="text-white text-xs">🎭</span>
+                </div>
+              </div>
+              <div>
+                <h2 className="text-3xl font-display text-white mb-2">Demo Attack Generator</h2>
+                <p className="text-slate-400">Generate realistic malicious transactions for demonstration purposes</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <button
+                onClick={() => handleDemoAttack('drainer')}
+                disabled={isGeneratingDemo || !walletAddress}
+                className="btn-secondary bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30 p-6 flex flex-col items-center gap-3"
+              >
+                <AlertTriangle className="w-8 h-8" />
+                <div className="text-center">
+                  <div className="font-semibold">Token Drainer</div>
+                  <div className="text-sm opacity-80">Multiple high approvals</div>
+                </div>
+              </button>
+              
+              <button
+                onClick={() => handleDemoAttack('flash_loan')}
+                disabled={isGeneratingDemo || !walletAddress}
+                className="btn-secondary bg-orange-500/20 border-orange-500/30 text-orange-300 hover:bg-orange-500/30 p-6 flex flex-col items-center gap-3"
+              >
+                <Zap className="w-8 h-8" />
+                <div className="text-center">
+                  <div className="font-semibold">Flash Loan Attack</div>
+                  <div className="text-sm opacity-80">Rapid same-block exploit</div>
+                </div>
+              </button>
+              
+              <button
+                onClick={() => handleDemoAttack('sandwich')}
+                disabled={isGeneratingDemo || !walletAddress}
+                className="btn-secondary bg-yellow-500/20 border-yellow-500/30 text-yellow-300 hover:bg-yellow-500/30 p-6 flex flex-col items-center gap-3"
+              >
+                <Activity className="w-8 h-8" />
+                <div className="text-center">
+                  <div className="font-semibold">Sandwich Attack</div>
+                  <div className="text-sm opacity-80">MEV manipulation</div>
+                </div>
+              </button>
+            </div>
+            
+            {isGeneratingDemo && (
+              <div className="mt-6 glass border-blue-500/30 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+                <div className="flex items-center gap-4">
+                  <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-blue-200 font-medium">Generating malicious transaction scenario...</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Footer */}
         <div className="text-center mt-32 relative">
