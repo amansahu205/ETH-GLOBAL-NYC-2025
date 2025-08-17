@@ -1,3 +1,17 @@
 {
-  "version": 2
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next",
+      "config": {
+        "outputDirectory": ".next"
+      }
+    }
+  ],
+  "functions": {
+    "app/**/*.js": {
+      "maxDuration": 30
+    }
+  }
 }
