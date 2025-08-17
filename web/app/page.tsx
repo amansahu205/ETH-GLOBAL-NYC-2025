@@ -13,7 +13,8 @@ interface Alert {
 }
 
 export default function SentinelPage() {
-  const { primaryWallet, user, isAuthenticated } = useDynamicContext()
+  const dynamicContext = useDynamicContext()
+  const { primaryWallet, user, isAuthenticated } = dynamicContext
   const [isPolling, setIsPolling] = useState(false)
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [isRecovering, setIsRecovering] = useState(false)
@@ -38,6 +39,18 @@ export default function SentinelPage() {
 
   // Get wallet address from Dynamic
   const walletAddress = primaryWallet?.address || ''
+
+  // Debug Dynamic authentication state
+  useEffect(() => {
+    console.log('Debug - Dynamic context:', dynamicContext)
+    console.log('Debug - Dynamic state:', { 
+      isAuthenticated, 
+      primaryWallet: !!primaryWallet, 
+      user: !!user,
+      walletAddress,
+      authToken: dynamicContext.authToken 
+    })
+  }, [dynamicContext, isAuthenticated, primaryWallet, user, walletAddress])
 
   const fetchAlerts = useCallback(async () => {
     if (!walletAddress) return
@@ -292,11 +305,12 @@ export default function SentinelPage() {
           </div>
         </div>
 
-        {!isAuthenticated ? (
+        {!isAuthenticated && !primaryWallet ? (
           <div className="text-center">
             <div className="max-w-md mx-auto mb-10">
               <p className="text-xl text-slate-300 mb-4 text-balance">Connect your wallet to activate</p>
               <p className="text-slate-400 text-balance">Real-time threat detection and autonomous security</p>
+              <p className="text-xs text-slate-500 mt-2">Debug: isAuth={String(isAuthenticated)}, wallet={String(!!primaryWallet)}</p>
             </div>
             <div className="flex justify-center">
               <DynamicWidget />
@@ -547,7 +561,7 @@ export default function SentinelPage() {
                 </div>
                 <div className="text-sm text-slate-400 mb-1">Wallet</div>
                 <div className="flex items-center justify-center gap-2">
-                  {isAuthenticated ? (
+                  {isAuthenticated || primaryWallet ? (
                     <>
                       <div className="w-2 h-2 bg-emerald-400 rounded-full pulse-glow"></div>
                       <span className="text-emerald-300 font-semibold">Connected</span>
@@ -626,7 +640,7 @@ export default function SentinelPage() {
                 </div>
                 <div className="text-sm text-slate-400 mb-1">Guardian</div>
                 <div className="flex items-center justify-center gap-2">
-                  {isAuthenticated ? (
+                  {isAuthenticated || primaryWallet ? (
                     <>
                       <div className="w-2 h-2 bg-orange-400 rounded-full pulse-glow"></div>
                       <span className="text-orange-300 font-semibold">Protected</span>
