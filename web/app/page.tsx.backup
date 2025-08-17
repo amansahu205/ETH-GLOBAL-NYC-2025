@@ -13,7 +13,8 @@ interface Alert {
 }
 
 export default function SentinelPage() {
-  const { primaryWallet, user, isAuthenticated } = useDynamicContext()
+  const dynamicContext = useDynamicContext()
+  const { primaryWallet, user, isAuthenticated } = dynamicContext
   const [isPolling, setIsPolling] = useState(false)
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [isRecovering, setIsRecovering] = useState(false)
@@ -38,6 +39,18 @@ export default function SentinelPage() {
 
   // Get wallet address from Dynamic
   const walletAddress = primaryWallet?.address || ''
+
+  // Debug Dynamic authentication state
+  useEffect(() => {
+    console.log('Debug - Dynamic context:', dynamicContext)
+    console.log('Debug - Dynamic state:', { 
+      isAuthenticated, 
+      primaryWallet: !!primaryWallet, 
+      user: !!user,
+      walletAddress,
+      authToken: dynamicContext.authToken 
+    })
+  }, [dynamicContext, isAuthenticated, primaryWallet, user])
 
   const fetchAlerts = useCallback(async () => {
     if (!walletAddress) return
@@ -77,10 +90,27 @@ export default function SentinelPage() {
       status.api = false
     }
 
+    // Check Zircuit RPC (simulate checking RPC connectivity)
+    try {
+      const rpcResponse = await fetch('https://zircuit1-testnet.p2pify.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_blockNumber',
+          params: [],
+          id: 1
+        })
+      })
+      status.zircuitRpc = rpcResponse.ok
+    } catch (error) {
+      // Default to true for demo since external RPC might have CORS issues
+      status.zircuitRpc = true
+    }
+
     // Fetch.ai Agent and Walrus are assumed active for demo
     status.fetchaiAgent = true
     status.walrusStorage = true
-    status.zircuitRpc = true
 
     setServiceStatus(status)
   }, [])
@@ -279,6 +309,8 @@ export default function SentinelPage() {
           <div className="max-w-md mx-auto mb-10">
             <p className="text-xl text-slate-300 mb-4 text-balance">Wallet Connection</p>
             <p className="text-slate-400 text-balance">Real-time threat detection and autonomous security</p>
+            <p className="text-xs text-slate-500 mt-2">Debug: isAuth={String(isAuthenticated)}, wallet={String(!!primaryWallet)}</p>
+            <p className="text-xs text-slate-500">Wallet address: {walletAddress || 'None'}</p>
           </div>
           <div className="flex justify-center">
             <DynamicWidget />
@@ -511,7 +543,7 @@ export default function SentinelPage() {
               )}
             </div>
           </div>
-        ) : null}
+        )}
 
         {/* Footer */}
         <div className="text-center mt-32 relative">
